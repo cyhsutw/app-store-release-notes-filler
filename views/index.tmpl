@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Release Notes Filler</title>
+    </head>
+    <body>
+        <form action="/upload" method="POST">
+            <select name="app_id" required>
+                <option disabled selected value> -- select an app -- </option>
+                {{ range $app := .apps }}
+                <option value="{{ $app.Id }}">
+                    {{ $app.Name }}
+                </option>
+                {{ end }}
+            </select>
+            <input type="text" name="key_name" required placeholder="Key (e.g. release_notes_4.42.1)" />
+            <input type="submit" value="Upload" />
+        </form>
+    </body>
+</html>

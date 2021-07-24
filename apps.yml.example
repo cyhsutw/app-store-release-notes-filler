@@ -1,0 +1,8 @@
+- name: 'App 1'
+  app_id: 'xxxxxx'
+  lokalise_project_id: 'xxxxxx'
+  icon_url: '/assets/some_icon.png'
+- name: 'App 2'
+  app_id: 'xxxxxx'
+  lokalise_project_id: 'xxxxxx'
+  icon_url: '/assets/some_icon.png'
