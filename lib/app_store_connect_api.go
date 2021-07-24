@@ -21,8 +21,9 @@ import (
 )
 
 type AppVersion struct {
-	Id    string
-	State string
+	Id            string
+	VersionString string
+	State         string
 }
 
 type AppVersionLocalization struct {
@@ -145,7 +146,7 @@ func FetchEditableVersion(appId string) (AppVersion, error) {
 	states := "DEVELOPER_REMOVED_FROM_SALE,DEVELOPER_REJECTED,INVALID_BINARY,METADATA_REJECTED,PREPARE_FOR_SUBMISSION,REJECTED,REMOVED_FROM_SALE,WAITING_FOR_REVIEW"
 	queries.Set("filter[appStoreState]", states)
 
-	includedFields := "appStoreState"
+	includedFields := "appStoreState,versionString"
 	queries.Set("fields[appStoreVersions]", includedFields)
 
 	queries.Set("limit", "1")
@@ -187,7 +188,13 @@ func FetchEditableVersion(appId string) (AppVersion, error) {
 		return AppVersion{}, errors.New(message)
 	}
 
-	return AppVersion{Id: id, State: state}, nil
+	versionString, err := version.GetPath("attributes", "versionString").String()
+	if err != nil {
+		message := fmt.Sprintf("cannot get `attributes.versionString` from `data` entry: %v", err)
+		return AppVersion{}, errors.New(message)
+	}
+
+	return AppVersion{Id: id, State: state, VersionString: versionString}, nil
 }
 
 // private

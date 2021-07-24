@@ -14,7 +14,7 @@ func main() {
 	router.LoadHTMLGlob("views/*")
 	router.Static("/assets", "./assets")
 	router.GET("/", routes.Index)
-	router.POST("/upload", routes.Upload)
+	router.POST("/tasks", routes.CreateTask)
 
 	router.Run("0.0.0.0:8081")
 }

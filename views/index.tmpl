@@ -3,9 +3,10 @@
     <head>
         <meta charset="utf-8" />
         <title>Release Notes Filler</title>
+        <script type="text/javascript" src="/assets/index.js" defer></script>
     </head>
     <body>
-        <form action="/upload" method="POST">
+        <form id="main-form" action="/tasks" method="POST">
             <select name="app_id" required>
                 <option disabled selected value> -- select an app -- </option>
                 {{ range $app := .apps }}

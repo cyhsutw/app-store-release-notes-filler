@@ -1,2 +1,3 @@
 apps.yml
 .env
+db/*.sqlite
