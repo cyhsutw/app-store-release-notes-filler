@@ -17,7 +17,7 @@ var ModelStore *gorm.DB = func() *gorm.DB {
 		log.Fatalf("error opening database: %v", err)
 	}
 
-	db.AutoMigrate(&Task{}, &TaskLog{})
+	db.AutoMigrate(&Task{}, &TaskEvent{})
 
 	return db
 }()

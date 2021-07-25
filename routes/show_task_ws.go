@@ -39,32 +39,36 @@ func ShowTaskWebSocket(c *gin.Context) {
 		return
 	}
 
+	// upgrade http to websocker
+	socket, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		fmt.Fprintln(gin.DefaultErrorWriter, "error upgrading connection to websocket: %v", err)
+		return
+	}
+
+	for _, event := range task.Events {
+		data, err := event.AsJson()
+		if err != nil {
+			fmt.Fprintln(gin.DefaultErrorWriter, "error serialize TaskEvent `%d` into JSON: %v", event.ID, err)
+			continue
+		}
+
+		err = socket.WriteMessage(websocket.TextMessage, data)
+		if err != nil {
+			fmt.Fprintln(gin.DefaultErrorWriter, "error writing to websocket: %v", err)
+		}
+	}
+
 	if task.Status != "in_progress" {
-		c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tasks/%d", taskId))
+		socket.Close()
 		return
 	}
 
 	channel := lib.FindChannel(task.ID)
-
 	if channel == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal: could not find channel",
-		})
+		socket.Close()
+		fmt.Fprintln(gin.DefaultErrorWriter, "could not find channel for task `%d`", task.ID)
 		return
-	}
-
-	// upgrade http to websocker
-	socket, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		fmt.Fprintf(gin.DefaultErrorWriter, "error upgrading connection to websocket: %v", err)
-		return
-	}
-
-	for _, log := range task.Logs {
-		err = socket.WriteMessage(websocket.TextMessage, []byte(log.Message))
-		if err != nil {
-			fmt.Fprintf(gin.DefaultErrorWriter, "error writing to websocket: %v", err)
-		}
 	}
 
 	channel.Subscribe <- socket

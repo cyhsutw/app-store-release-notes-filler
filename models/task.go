@@ -14,5 +14,5 @@ type Task struct {
 	CompletedAt       *time.Time
 	Status            string `gorm:"not null;default:in_progress"`
 	IPAddress         string `gorm:"not null"`
-	Logs              []TaskLog
+	Events            []TaskEvent
 }

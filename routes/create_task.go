@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"release-notes-filler/lib"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func CreateTask(c *gin.Context) {
@@ -36,6 +38,16 @@ func CreateTask(c *gin.Context) {
 	if err != nil {
 		message := fmt.Sprintf("fetch app error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": message})
+		return
+	}
+
+	queryErr := models.ModelStore.Where(&models.Task{AppId: app.Id, Status: "in_progress"}).First(&models.Task{}).Error
+
+	if queryErr == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "another task is running"})
+		return
+	} else if errors.Is(queryErr, gorm.ErrRecordNotFound) == false {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error: query existing"})
 		return
 	}
 

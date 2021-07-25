@@ -12,7 +12,7 @@ type Channel struct {
 	clients     map[*websocket.Conn]bool
 	Subscribe   chan *websocket.Conn
 	Unsubscribe chan *websocket.Conn
-	Broadcast   chan string
+	Broadcast   chan []byte
 	destroy     chan bool
 }
 
@@ -20,7 +20,7 @@ func newChannel() *Channel {
 	return &Channel{
 		clients:   make(map[*websocket.Conn]bool),
 		Subscribe: make(chan *websocket.Conn),
-		Broadcast: make(chan string),
+		Broadcast: make(chan []byte),
 		destroy:   make(chan bool),
 	}
 }
@@ -32,9 +32,8 @@ LOOP:
 		case client := <-ch.Subscribe:
 			ch.clients[client] = true
 		case message := <-ch.Broadcast:
-			data := []byte(message)
 			for client := range ch.clients {
-				client.WriteMessage(websocket.TextMessage, data)
+				client.WriteMessage(websocket.TextMessage, message)
 			}
 		case flag := <-ch.destroy:
 			if flag {

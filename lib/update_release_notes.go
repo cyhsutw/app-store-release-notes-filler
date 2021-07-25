@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"release-notes-filler/models"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UpdateReleaseNotes(task models.Task) {
@@ -124,13 +126,20 @@ func logInfo(message string, task models.Task, channel *Channel) {
 }
 
 func createLog(message string, logType string, task models.Task, channel *Channel) {
-	models.ModelStore.Create(&models.TaskLog{
-		TaskId:  task.ID,
-		LogType: logType,
-		Message: message,
-	})
+	var event = models.TaskEvent{
+		TaskId:   task.ID,
+		Category: logType,
+		Message:  message,
+	}
+
+	models.ModelStore.Create(&event)
 
 	if channel != nil {
-		channel.Broadcast <- message
+		data, err := event.AsJson()
+		if err != nil {
+			fmt.Fprintln(gin.DefaultErrorWriter, "goroutine - error serialize TaskEvent `%d` into JSON: %v", event.ID, err)
+			return
+		}
+		channel.Broadcast <- data
 	}
 }
