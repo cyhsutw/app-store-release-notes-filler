@@ -15,6 +15,7 @@ func main() {
 	router.Static("/assets", "./assets")
 	router.GET("/", routes.Index)
 	router.POST("/tasks", routes.CreateTask)
+	router.GET("/tasks/:id/ws", routes.ShowTaskWebSocket)
 
 	router.Run("0.0.0.0:8081")
 }

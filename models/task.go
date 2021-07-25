@@ -11,7 +11,7 @@ type Task struct {
 	AppId             string `gorm:"not null"`
 	LokaliseProjectId string `gorm:"not null"`
 	KeyName           string `gorm:"not null"`
-	CompletedAt       time.Time
+	CompletedAt       *time.Time
 	Status            string `gorm:"not null;default:in_progress"`
 	IPAddress         string `gorm:"not null"`
 	Logs              []TaskLog

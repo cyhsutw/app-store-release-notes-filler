@@ -210,7 +210,7 @@ type sharedSigningKey struct {
 
 func (k *sharedSigningKey) value() *ecdsa.PrivateKey {
 	k.mutex.RLock()
-	defer k.mutex.RLocker().Unlock()
+	defer k.mutex.RUnlock()
 	return k.key
 }
 

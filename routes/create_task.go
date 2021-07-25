@@ -13,6 +13,13 @@ import (
 func CreateTask(c *gin.Context) {
 	jsonBody, err := simplejson.NewFromReader(c.Request.Body)
 
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("could not read json body: %v", err),
+		})
+		return
+	}
+
 	appId := jsonBody.Get("app_id").MustString()
 	if len(appId) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "app not provided"})
