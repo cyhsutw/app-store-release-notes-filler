@@ -1,0 +1,13 @@
+body {
+  background-color: var(--color-bg-tertiary);
+}
+
+.title {
+  font-size: x-large;
+  margin-bottom: 20px;
+  font-weight: 200;
+}
+
+.hidden {
+  display: none !important;
+}

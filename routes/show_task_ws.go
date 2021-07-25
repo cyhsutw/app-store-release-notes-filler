@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"release-notes-filler/lib"
-	"release-notes-filler/models"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"gorm.io/gorm/clause"
 )
 
 var upgrader = websocket.Upgrader{
@@ -19,22 +16,18 @@ var upgrader = websocket.Upgrader{
 }
 
 func ShowTaskWebSocket(c *gin.Context) {
-	taskIdString := c.Param("id")
-
-	taskId, err := strconv.ParseUint(taskIdString, 10, 64)
+	taskId, err := ExtractTaskId(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("invalid task_id `%s`", taskIdString),
+			"error": "invalid task_id",
 		})
 		return
 	}
 
-	task := models.Task{}
-	models.ModelStore.Preload(clause.Associations).First(&task, taskId)
-
-	if task.ID != uint(taskId) {
+	task := FindTask(*taskId)
+	if task == nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": fmt.Sprintf("task `%d` could not found", taskId),
+			"error": fmt.Sprintf("task `%d` could not found", *taskId),
 		})
 		return
 	}

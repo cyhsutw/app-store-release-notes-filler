@@ -1,0 +1,31 @@
+.container {
+  display: block;
+  width: 80%;
+  max-width: 420px;
+  margin: 10vh auto;
+}
+
+.TimelineItem.closed-timeline-item:first-child::before {
+  top: 50%;
+}
+
+.TimelineItem.closed-timeline-item:last-child::before {
+  bottom: 50%;
+}
+
+.multiline {
+  white-space: pre-line;
+}
+
+@keyframes rotating {
+  from{
+      transform: rotate(360deg);
+  }
+  to{
+      transform: rotate(0deg);
+  }
+}
+
+.rotating {
+  animation: rotating 2s linear infinite;
+}

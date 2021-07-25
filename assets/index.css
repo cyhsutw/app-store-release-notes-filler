@@ -1,7 +1,3 @@
-body {
-  background-color: var(--color-bg-tertiary);
-}
-
 .v-center-parent {
   display: flex;
   justify-content: center;
@@ -11,16 +7,6 @@ body {
 
 .v-center-parent:only-child {
   padding-bottom: 15vh;
-}
-
-.text-input {
-  size: 1000;
-}
-
-.title {
-  font-size: x-large;
-  margin-bottom: 20px;
-  font-weight: 200;
 }
 
 .container {
@@ -52,6 +38,11 @@ body {
 
 .dropdown-menu-fit .dropdown-item {
   padding-right: 10px;
+}
+
+summary.disabled {
+  opacity: 0.8;
+  cursor: default;
 }
 
 .app-icon {
@@ -87,8 +78,4 @@ body {
 #error-message {
   text-align: left;
   padding: 8px 16px;
-}
-
-.hidden {
-  display: none !important;
 }

@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"release-notes-filler/models"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,34 +18,34 @@ func UpdateReleaseNotes(task models.Task) {
 		return
 	}
 
-	logInfo("⚡️ Starting updating release notes...", task, channel)
+	logOperationStart("Starting updating release notes...", task, channel)
 
-	logInfo("🌐 Finding the next app version...", task, channel)
+	logOperationStart("Finding the next app version...", task, channel)
 	version, err := FetchEditableVersion(task.AppId)
 	if err != nil {
-		message := fmt.Sprintf("❌ Failed to find the next app version (%v)", err)
+		message := fmt.Sprintf("Failed to find the next app version (%v)", err)
 		logError(message, task, channel)
 		return
 	}
-	logInfo(fmt.Sprintf("✅ Found the next app version: %s", version.VersionString), task, channel)
+	logOperationFinish(fmt.Sprintf("Found the next app version: %s", version.VersionString), task, channel)
 
-	logInfo(fmt.Sprintf("🌐 Loading the list of enabled localizations of %s ...", version.VersionString), task, channel)
+	logOperationStart(fmt.Sprintf("Loading the list of enabled localizations of %s ...", version.VersionString), task, channel)
 	localizations, err := FetchVersionLocalizations(version.Id)
 	if err != nil {
-		message := fmt.Sprintf("❌ Failed to load the list of enabled localizations of %s (%v)", version.VersionString, err)
+		message := fmt.Sprintf("Failed to load the list of enabled localizations of %s (%v)", version.VersionString, err)
 		logError(message, task, channel)
 		return
 	}
-	logInfo(fmt.Sprintf("✅ Loaded the list of enabled localizations of %s", version.VersionString), task, channel)
+	logOperationFinish(fmt.Sprintf("Loaded the list of enabled localizations of %s", version.VersionString), task, channel)
 
-	logInfo(fmt.Sprintf("💾 Downloading translations from Lokalise (key = %s)", task.KeyName), task, channel)
+	logOperationStart(fmt.Sprintf("Downloading translations from Lokalise (key = %s)", task.KeyName), task, channel)
 	contents, err := FetchKeyContent(task.LokaliseProjectId, task.KeyName)
 	if err != nil {
-		message := fmt.Sprintf("❌ Error downloading translations (%v)", err)
+		message := fmt.Sprintf("Error downloading translations (%v)", err)
 		logError(message, task, channel)
 		return
 	}
-	logInfo("✅ Downloaded translations from Lokalise", task, channel)
+	logOperationFinish("Downloaded translations from Lokalise", task, channel)
 
 	var updatedModels = map[string]string{}
 	var failedModels []string
@@ -54,7 +55,7 @@ func UpdateReleaseNotes(task models.Task) {
 			code = newCode
 		}
 
-		logInfo(fmt.Sprintf("📝 Updating release notes for %s ...", code), task, channel)
+		logOperationStart(fmt.Sprintf("Updating release notes for `%s`...", code), task, channel)
 
 		var content = ""
 		if newContent, found := contents[code]; found {
@@ -62,8 +63,8 @@ func UpdateReleaseNotes(task models.Task) {
 		}
 
 		if len(content) == 0 {
-			logInfo(fmt.Sprintf("⚠️ Unable to find contents for %s!", code), task, channel)
-			logInfo(fmt.Sprintf("✂️ Skipped updating release notes for %s", code), task, channel)
+			logWarning(fmt.Sprintf("Unable to find contents for `%s`!", code), task, channel)
+			logWarning(fmt.Sprintf("Skipped updating release notes for `%s`", code), task, channel)
 			failedModels = append(failedModels, code)
 			continue
 		}
@@ -75,32 +76,34 @@ func UpdateReleaseNotes(task models.Task) {
 		})
 
 		if err != nil {
-			logInfo(fmt.Sprintf("❌ Failed to update release notes for %s. Moving on.", code), task, channel)
+			logWarning(fmt.Sprintf("Failed to update release notes for `%s`. Moving on.", code), task, channel)
 			failedModels = append(failedModels, code)
 			continue
 		}
 
 		updatedModels[code] = updatedModel.ReleaseNotes
-		logInfo(fmt.Sprintf("✅ Updated release notes for %s.", code), task, channel)
+		logOperationFinish(fmt.Sprintf("Updated release notes for %s.", code), task, channel)
 	}
 
-	logInfo("------ Summary ------", task, channel)
-
+	var summaryBuilder strings.Builder
+	summaryBuilder.WriteString("Summary\n")
 	if len(updatedModels) > 0 {
-		logInfo("✅ Updated", task, channel)
+		summaryBuilder.WriteString("✅ Updated\n")
 		for code, text := range updatedModels {
-			logInfo(fmt.Sprintf("%s:\n%s", code, text), task, channel)
+			summaryBuilder.WriteString(fmt.Sprintf("%s:\n%s\n", code, text))
 		}
 	}
 
 	if len(failedModels) > 0 {
-		logInfo("❌ Not Updated", task, channel)
+		summaryBuilder.WriteString("❌ Not Updated\n")
 		for _, code := range failedModels {
-			logInfo(fmt.Sprintf("%10s", code), task, channel)
+			summaryBuilder.WriteString(fmt.Sprintf("%s\n", code))
 		}
 	}
 
-	logInfo("👌 Completed updating release notes", task, channel)
+	logInfo(summaryBuilder.String(), task, channel)
+
+	logOperationFinish("Completed updating release notes", task, channel)
 
 	timestamp := time.Now()
 	models.ModelStore.Model(&task).Updates(models.Task{
@@ -121,14 +124,26 @@ func logError(message string, task models.Task, channel *Channel) {
 	})
 }
 
+func logWarning(message string, task models.Task, channel *Channel) {
+	createLog(message, "warn", task, channel)
+}
+
+func logOperationStart(message string, task models.Task, channel *Channel) {
+	createLog(message, "start", task, channel)
+}
+
+func logOperationFinish(message string, task models.Task, channel *Channel) {
+	createLog(message, "finish", task, channel)
+}
+
 func logInfo(message string, task models.Task, channel *Channel) {
 	createLog(message, "info", task, channel)
 }
 
-func createLog(message string, logType string, task models.Task, channel *Channel) {
+func createLog(message string, category string, task models.Task, channel *Channel) {
 	var event = models.TaskEvent{
 		TaskId:   task.ID,
-		Category: logType,
+		Category: category,
 		Message:  message,
 	}
 
