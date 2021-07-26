@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    env_file: .env
+    ports:
+      - '48745:8080'
+    volumes:
+      - sqlite-db:/app/db
+volumes:
+  sqlite-db:

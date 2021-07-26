@@ -1,0 +1,5 @@
+.git
+apps.yml.example
+.env
+.env.example
+db/*.sqlite

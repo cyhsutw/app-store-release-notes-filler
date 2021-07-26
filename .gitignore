@@ -1,3 +1,5 @@
 apps.yml
 .env
 db/*.sqlite
+images/*
+!images/.keep
