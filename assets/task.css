@@ -17,6 +17,28 @@
   white-space: pre-line;
 }
 
+.home {
+  display: block;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-disabled);
+  text-decoration: none;
+}
+
+.home-link:hover {
+  text-decoration: none;
+  color: var(--color-text-link);
+}
+
+.home-link span {
+  margin-left: 6px;
+}
+
 @keyframes rotating {
   from{
       transform: rotate(360deg);

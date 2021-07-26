@@ -82,15 +82,15 @@ func UpdateReleaseNotes(task models.Task) {
 		}
 
 		updatedModels[code] = updatedModel.ReleaseNotes
-		logOperationFinish(fmt.Sprintf("Updated release notes for %s.", code), task, channel)
+		logOperationFinish(fmt.Sprintf("Updated release notes for `%s`.", code), task, channel)
 	}
 
 	var summaryBuilder strings.Builder
-	summaryBuilder.WriteString("Summary\n")
+	summaryBuilder.WriteString("Summary\n\n")
 	if len(updatedModels) > 0 {
-		summaryBuilder.WriteString("✅ Updated\n")
+		summaryBuilder.WriteString("✅ Updated\n\n")
 		for code, text := range updatedModels {
-			summaryBuilder.WriteString(fmt.Sprintf("%s:\n%s\n", code, text))
+			summaryBuilder.WriteString(fmt.Sprintf("%s:\n%s\n\n", code, text))
 		}
 	}
 
