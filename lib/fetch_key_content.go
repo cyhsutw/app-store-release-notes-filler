@@ -2,6 +2,7 @@ package lib
 
 import (
 	"errors"
+	"release-notes-filler/lib/env"
 
 	"github.com/lokalise/go-lokalise-api/v3"
 )
@@ -53,5 +54,5 @@ func FetchKeyContent(lokaliseProjectId string, keyName string) (map[string]strin
 
 // private
 func getLokaliseApiKey() (string, error) {
-	return FetchEnvVar("LOKALISE_API_KEY")
+	return env.FetchEnvVar("LOKALISE_API_KEY")
 }

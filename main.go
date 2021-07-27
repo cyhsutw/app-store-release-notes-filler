@@ -1,15 +1,12 @@
 package main
 
 import (
-	"release-notes-filler/lib"
 	"release-notes-filler/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	lib.LoadEnvVars()
-
 	router := gin.Default()
 	router.LoadHTMLGlob("views/*")
 	router.Static("/assets", "./assets")
@@ -20,5 +17,5 @@ func main() {
 	router.GET("/tasks/:id", routes.ShowTask)
 	router.GET("/tasks/:id/ws", routes.ShowTaskWebSocket)
 
-	router.Run(":8080")
+	router.Run(":8082")
 }

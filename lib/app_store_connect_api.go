@@ -12,7 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"sync"
+	"release-notes-filler/lib/env"
 	"time"
 
 	"github.com/bitly/go-simplejson"
@@ -198,38 +198,18 @@ func FetchEditableVersion(appId string) (AppVersion, error) {
 }
 
 // private
-type signingKey interface {
-	value() *ecdsa.PrivateKey
-}
+var signingKey *ecdsa.PrivateKey
+var issuerId string
+var keyId string
 
-type sharedSigningKey struct {
-	key      *ecdsa.PrivateKey
-	mutex    sync.RWMutex
-	isLoaded bool
-}
-
-func (k *sharedSigningKey) value() *ecdsa.PrivateKey {
-	k.mutex.RLock()
-	defer k.mutex.RUnlock()
-	return k.key
-}
-
-var currentSigningKey = sharedSigningKey{isLoaded: false}
-
-func loadSigningKey() {
-	currentSigningKey.mutex.Lock()
-	defer currentSigningKey.mutex.Unlock()
-
-	if currentSigningKey.isLoaded {
-		return
-	}
-
-	currentSigningKey.key = fetchPrivateKey()
-	currentSigningKey.isLoaded = true
+func init() {
+	signingKey = fetchPrivateKey()
+	issuerId = fetchIssuerId()
+	keyId = fetchKeyId()
 }
 
 func fetchPrivateKey() *ecdsa.PrivateKey {
-	privateKey, err := FetchEnvVar("APP_STORE_CONNECT_API_PRIVATE_KEY")
+	privateKey, err := env.FetchEnvVar("APP_STORE_CONNECT_API_PRIVATE_KEY")
 	if err != nil {
 		log.Fatalln("Cannot fetch APP_STORE_CONNECT_API_PRIVATE_KEY")
 	}
@@ -252,15 +232,23 @@ func fetchPrivateKey() *ecdsa.PrivateKey {
 	return ecdsaPrivateKey
 }
 
-func fetchIssuerId() (string, error) {
-	return FetchEnvVar("APP_STORE_CONNECT_API_ISSUER_ID")
+func fetchIssuerId() string {
+	val, err := env.FetchEnvVar("APP_STORE_CONNECT_API_ISSUER_ID")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return val
 }
 
-func fetchKeyId() (string, error) {
-	return FetchEnvVar("APP_STORE_CONNECT_API_KEY_ID")
+func fetchKeyId() string {
+	val, err := env.FetchEnvVar("APP_STORE_CONNECT_API_KEY_ID")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return val
 }
 
-func generateJwt(issuerId string, keyId string, privateKey signingKey) (string, error) {
+func generateJwt(issuerId string, keyId string, privateKey *ecdsa.PrivateKey) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodES256,
 		jwt.MapClaims{
@@ -273,7 +261,7 @@ func generateJwt(issuerId string, keyId string, privateKey signingKey) (string, 
 
 	token.Header["kid"] = keyId
 
-	signedToken, err := token.SignedString(privateKey.value())
+	signedToken, err := token.SignedString(privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -284,20 +272,7 @@ func generateJwt(issuerId string, keyId string, privateKey signingKey) (string, 
 func sendRequest(request *http.Request) (int, *simplejson.Json, error) {
 	client := &http.Client{}
 
-	// generate JWT
-	loadSigningKey()
-
-	iss, err := fetchIssuerId()
-	if err != nil {
-		return -1, nil, err
-	}
-
-	kid, err := fetchKeyId()
-	if err != nil {
-		return -1, nil, err
-	}
-
-	token, err := generateJwt(iss, kid, &currentSigningKey)
+	token, err := generateJwt(issuerId, keyId, signingKey)
 	if err != nil {
 		message := fmt.Sprintf("error generating jwt : %v", err)
 		return -1, nil, errors.New(message)
