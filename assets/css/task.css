@@ -1,8 +1,6 @@
-.container {
-  display: block;
-  width: 80%;
-  max-width: 420px;
-  margin: 10vh auto;
+.main.content-left.compact {
+  width: 400px;
+  text-align: left;
 }
 
 .TimelineItem.closed-timeline-item:first-child::before {

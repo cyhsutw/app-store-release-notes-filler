@@ -2,6 +2,16 @@ body {
   background-color: var(--color-bg-tertiary);
 }
 
+.container {
+  text-align: center;
+}
+
+.main {
+  display: inline-block;
+  margin: 10vh auto auto;
+  text-align: center;
+}
+
 .title {
   font-size: x-large;
   margin-bottom: 20px;
